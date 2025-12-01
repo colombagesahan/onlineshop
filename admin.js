@@ -3,70 +3,71 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https:/
 import { collection, doc, setDoc, addDoc, getDocs, deleteDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// Auth State Listener
-// admin.js - Updated Safety Check
-
-import { auth, db, storage, getSiteSettings } from './firebase-config.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, doc, setDoc, addDoc, getDocs, deleteDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-// --- SAFER AUTH LISTENER ---
+// --- AUTH STATE LISTENER (With Safety Checks) ---
 onAuthStateChanged(auth, (user) => {
     const loginScreen = document.getElementById('login-screen');
     const dashboard = document.getElementById('dashboard');
 
-    // 1. Safety Check: If HTML isn't loaded, stop the crash
+    // Safety Check: Stop crash if HTML is missing
     if (!loginScreen || !dashboard) {
-        console.error("CRITICAL ERROR: HTML elements 'login-screen' or 'dashboard' are missing.");
-        console.log("Did you update admin.html? Try clearing cache (Ctrl+Shift+R).");
-        return; 
+        console.warn("HTML elements missing. Waiting for page to load...");
+        return;
     }
 
-    // 2. Logic
     if (user) {
-        // User is logged in -> Show Dashboard
+        // User is logged in
         loginScreen.style.display = 'none';
         dashboard.style.display = 'block';
         
-        // Load data
+        // Load Data
         loadSettings();
         loadProducts();
         loadOrders();
     } else {
-        // User is NOT logged in -> Show Login
+        // User is NOT logged in
         loginScreen.style.display = 'block';
         dashboard.style.display = 'none';
     }
 });
 
-// ... rest of your code (window.adminLogin, etc.) ...
-
-// Login
+// --- LOGIN FUNCTION ---
 window.adminLogin = () => {
-    const e = document.getElementById('admin-email').value;
-    const p = document.getElementById('admin-pass').value;
+    const emailField = document.getElementById('admin-email');
+    const passField = document.getElementById('admin-pass');
+    
+    if(!emailField || !passField) return alert("Error: Login inputs missing in HTML");
+
+    const e = emailField.value;
+    const p = passField.value;
+
     signInWithEmailAndPassword(auth, e, p)
         .then(() => {
-            console.log("Logged in");
+            console.log("Logged in successfully");
         })
         .catch(err => {
             alert("Login Failed: " + err.message);
+            console.error(err);
         });
 };
 
-window.logout = () => signOut(auth);
+// --- LOGOUT FUNCTION ---
+window.logout = () => {
+    signOut(auth).then(() => {
+        alert("Logged out");
+        location.reload();
+    });
+};
 
 // --- SETTINGS LOGIC ---
 async function loadSettings() {
     const data = await getSiteSettings();
-    document.getElementById('set-bizName').value = data.bizName || "";
-    document.getElementById('set-color').value = data.primaryColor || "#000000";
-    document.getElementById('set-phone').value = data.ownerPhone || "";
-    document.getElementById('set-logo-url').value = data.logoUrl || "";
-    document.getElementById('set-hero').value = data.heroText || "";
-    document.getElementById('set-vision').value = data.vision || "";
-    document.getElementById('set-contact').value = data.contact || "";
+    if(document.getElementById('set-bizName')) document.getElementById('set-bizName').value = data.bizName || "";
+    if(document.getElementById('set-color')) document.getElementById('set-color').value = data.primaryColor || "#000000";
+    if(document.getElementById('set-phone')) document.getElementById('set-phone').value = data.ownerPhone || "";
+    if(document.getElementById('set-logo-url')) document.getElementById('set-logo-url').value = data.logoUrl || "";
+    if(document.getElementById('set-hero')) document.getElementById('set-hero').value = data.heroText || "";
+    if(document.getElementById('set-vision')) document.getElementById('set-vision').value = data.vision || "";
+    if(document.getElementById('set-contact')) document.getElementById('set-contact').value = data.contact || "";
 }
 
 window.saveSettings = async () => {
@@ -86,15 +87,24 @@ window.saveSettings = async () => {
 
 // --- IMAGE UPLOAD HELPER ---
 window.uploadImage = async (inputId, hiddenInputId = null) => {
-    const file = document.getElementById(inputId).files[0];
-    if (!file) return null;
+    const fileInput = document.getElementById(inputId);
+    if (!fileInput || !fileInput.files[0]) return alert("No file selected");
     
+    const file = fileInput.files[0];
     const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
     
-    if(hiddenInputId) document.getElementById(hiddenInputId).value = url;
-    return url;
+    try {
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        
+        if(hiddenInputId) document.getElementById(hiddenInputId).value = url;
+        alert("Image Uploaded!");
+        return url;
+    } catch (err) {
+        console.error("Upload failed", err);
+        alert("Upload failed: " + err.message);
+        return null;
+    }
 };
 
 // --- PRODUCT LOGIC ---
@@ -127,17 +137,20 @@ window.addProduct = async () => {
 };
 
 async function loadProducts() {
+    const list = document.getElementById('admin-product-list');
+    if(!list) return;
+
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    const list = document.getElementById('admin-product-list');
+    
     list.innerHTML = '';
     
     snap.forEach(doc => {
         const p = doc.data();
         list.innerHTML += `
-            <div style="border-bottom:1px solid #ccc; padding:10px;">
+            <div style="border-bottom:1px solid #ccc; padding:10px; background:white; margin-bottom:5px;">
                 <b>${p.title}</b> - Stock: ${p.stock}
-                <button onclick="deleteProduct('${doc.id}')" style="background:red; float:right; color:white;">Delete</button>
+                <button onclick="deleteProduct('${doc.id}')" style="background:var(--danger); float:right; color:white; padding:5px 10px;">Delete</button>
             </div>
         `;
     });
@@ -150,18 +163,20 @@ window.deleteProduct = async (id) => {
     }
 };
 
-// --- ORDER LOGIC (Updated with Status) ---
+// --- ORDER LOGIC ---
 async function loadOrders() {
+    const list = document.getElementById('order-list');
+    if(!list) return;
+
     const q = query(collection(db, "orders"), orderBy("timestamp", "desc"));
     const snap = await getDocs(q);
-    const list = document.getElementById('order-list');
     list.innerHTML = '';
 
     snap.forEach(docSnap => {
         const o = docSnap.data();
         const docId = docSnap.id;
         
-        // Color logic for status
+        // Status Color logic
         let statusColor = '#333';
         if(o.status === 'New') statusColor = 'blue';
         if(o.status === 'Shipped') statusColor = 'orange';
@@ -196,11 +211,9 @@ async function loadOrders() {
     });
 }
 
-// Function to update order status in Firebase
 window.updateOrderStatus = async (orderId, newStatus) => {
     try {
         await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-        // Refresh orders to see the color change
         loadOrders(); 
     } catch(e) {
         alert("Error updating status: " + e.message);
