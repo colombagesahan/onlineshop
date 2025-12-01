@@ -3,100 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Online Shop</title>
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Build Your Online Store</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        body { text-align: center; padding-top: 50px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); height: 100vh; }
+        .hero-box { background: white; max-width: 600px; margin: 0 auto; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #333; margin-bottom: 10px; }
+        p { color: #666; margin-bottom: 30px; }
+        .btn-main { background: #2563eb; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; display: inline-block; }
+        .btn-sec { background: transparent; color: #2563eb; border: 2px solid #2563eb; padding: 13px 28px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; text-decoration: none; margin-left: 10px; }
+    </style>
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav>
-        <div class="container">
-            <div id="brand-area" class="nav-brand">
-                <i class="fa-solid fa-store"></i> <span id="biz-name">Loading...</span>
-            </div>
-            <button class="cart-btn" onclick="openCart()">
-                <i class="fa-solid fa-shopping-cart"></i> 
-                <span id="cart-count">0</span>
-            </button>
-        </div>
-    </nav>
-
-    <!-- Hero -->
-    <header id="hero-section">
-        <div class="container">
-            <h1 id="hero-text">Welcome to our store</h1>
-        </div>
-    </header>
-
-    <!-- Search & Filter -->
-    <div class="container">
-        <div class="filter-bar">
-            <input type="text" id="search-bar" placeholder="🔍 Search products..." onkeyup="filterProducts()">
-            <select id="category-filter" onchange="filterProducts()">
-                <option value="all">All Categories</option>
-                <!-- Categories will auto-load here -->
-            </select>
-        </div>
+    <div class="hero-box">
+        <h1>Launch Your E-Commerce Business</h1>
+        <p>Create your own online store in seconds. Manage products, orders, and design easily.</p>
+        
+        <!-- Both go to admin.html because Firebase Auth handles Sign Up & Login together -->
+        <a href="admin.html" class="btn-main">Create Account</a>
+        <a href="admin.html" class="btn-sec">Login</a>
     </div>
 
-    <!-- Products -->
-    <div class="container">
-        <div id="product-list" class="product-grid">
-            <p style="text-align:center; width:100%;">Loading Products...</p>
-        </div>
-    </div>
-
-    <!-- Info Sections -->
-    <div class="container" style="margin-top: 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-        <div class="product-card card-body">
-            <h3><i class="fa-solid fa-bullseye"></i> About Us</h3>
-            <p id="vision-mission">...</p>
-        </div>
-        <div class="product-card card-body">
-            <h3><i class="fa-solid fa-phone"></i> Contact Us</h3>
-            <p id="contact-details">...</p>
-        </div>
-    </div>
-
-    <!-- PRODUCT DETAILS MODAL -->
-    <div id="product-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('product-modal')">&times;</span>
-            <div id="modal-body"></div>
-        </div>
-    </div>
-
-    <!-- CART MODAL -->
-    <div id="cart-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2><i class="fa-solid fa-bag-shopping"></i> Your Cart</h2>
-            <div id="cart-items"></div>
-            
-            <div class="total-box">
-                <span>Total</span>
-                <span id="cart-total">0</span>
-            </div>
-            
-            <hr>
-            <h3>Checkout Details</h3>
-            <input type="text" id="cust-name" placeholder="Full Name">
-            <input type="text" id="cust-address" placeholder="Delivery Address">
-            <input type="tel" id="cust-phone" placeholder="Phone Number">
-            <input type="tel" id="cust-whatsapp" placeholder="WhatsApp Number (for updates)">
-
-            <button onclick="checkoutWhatsApp()" style="width:100%; background:#25D366; margin-top:10px;">
-                <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
-            </button>
-        </div>
-    </div>
-
-    <!-- CORRECT -->
-<script type="module" src="app.js"></script>
-    <script>
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    </script>
 </body>
 </html>
