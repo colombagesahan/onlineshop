@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav id="navbar">
+        <div id="brand-area">
+            <h2 id="biz-name">Loading...</h2>
+        </div>
+        <div>
+            <button onclick="openCart()">Cart (<span id="cart-count">0</span>)</button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="hero-section" style="background:#eee; padding:50px 20px; text-align:center;">
+        <h1 id="hero-text">Welcome</h1>
+    </header>
+
+    <!-- Search & Filter -->
+    <div class="container">
+        <input type="text" id="search-bar" placeholder="Search products..." onkeyup="filterProducts()">
+        <select id="category-filter" onchange="filterProducts()">
+            <option value="all">All Categories</option>
+            <!-- Categories injected by JS -->
+        </select>
+    </div>
+
+    <!-- Products -->
+    <div class="container">
+        <div id="product-list" class="product-grid">
+            <!-- Products injected here -->
+        </div>
+    </div>
+
+    <!-- About Us -->
+    <div class="container" id="about-section">
+        <h2>About Us</h2>
+        <p id="vision-mission">Loading...</p>
+    </div>
+
+    <!-- Contact -->
+    <div class="container">
+        <h2>Contact Us</h2>
+        <p id="contact-details">Loading...</p>
+    </div>
+
+    <!-- PRODUCT DETAILS MODAL -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('product-modal')">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- CART MODAL -->
+    <div id="cart-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
+            <h2>Your Cart</h2>
+            <div id="cart-items"></div>
+            <h3>Total: <span id="cart-total">0</span></h3>
+            
+            <hr>
+            <h3>Checkout Details</h3>
+            <input type="text" id="cust-name" placeholder="Your Name">
+            <input type="text" id="cust-address" placeholder="Delivery Address">
+            <input type="tel" id="cust-phone" placeholder="Phone Number">
+            <input type="tel" id="cust-whatsapp" placeholder="WhatsApp Number">
+
+            <!-- Payment Plugin Placeholders -->
+            <div id="payment-plugins">
+                <!-- PASTE PAYPAL/PAYHERE BUTTON CODES HERE -->
+                <!-- <div id="paypal-button-container"></div> -->
+                <p><em>COD (Cash on Delivery) available.</em></p>
+            </div>
+
+            <button onclick="checkoutWhatsApp()">Send Order via WhatsApp</button>
+            <button onclick="closeModal('cart-modal')" style="background:#666">Continue Shopping</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <script>
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    </script>
+</body>
+</html>
