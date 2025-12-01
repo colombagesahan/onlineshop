@@ -1,12 +1,13 @@
-import { auth, db, storage } from './firebase-config.js'; // Note: getSiteSettings is no longer needed here as we load dynamic settings
+import { auth, db, storage } from './firebase-config.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, doc, setDoc, addDoc, getDocs, deleteDoc, getDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// --- AUTH LISTENER & DASHBOARD SETUP ---
+// --- AUTH LISTENER ---
 onAuthStateChanged(auth, (user) => {
     const loginScreen = document.getElementById('login-screen');
     const dashboard = document.getElementById('dashboard');
+    const shopLink = document.getElementById('live-shop-link'); // <--- NEW LINE
 
     if (!loginScreen || !dashboard) return;
 
@@ -15,23 +16,13 @@ onAuthStateChanged(auth, (user) => {
         loginScreen.style.display = 'none';
         dashboard.style.display = 'block';
 
-        // 2. Generate "My Live Shop" Link
-        // We check if it exists first to avoid adding it multiple times
-        if(!document.getElementById('live-shop-btn')) {
-            const header = document.querySelector('.admin-header');
-            const btn = document.createElement('a');
-            btn.id = 'live-shop-btn';
-            btn.href = `shop.html?store=${user.uid}`; // THE MAGIC LINK
-            btn.target = '_blank';
-            btn.innerHTML = `<i class="fa-solid fa-external-link"></i> Open My Live Shop`;
-            btn.style.cssText = "background:white; color:#333; padding:5px 10px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:12px; margin-right:10px;";
-            
-            // Insert before the Logout button
-            const logoutBtn = header.querySelector('button');
-            header.insertBefore(btn, logoutBtn);
+        // 2. Activate the Shop Link
+        if (shopLink) {
+            shopLink.href = `shop.html?store=${user.uid}`; // Add the User ID to the URL
+            shopLink.style.display = 'inline-block';       // Make it visible
         }
 
-        // 3. Load Data for THIS User
+        // 3. Load Data
         loadSettings(user.uid);
         loadProducts(user.uid);
         loadOrders(user.uid);
@@ -41,7 +32,6 @@ onAuthStateChanged(auth, (user) => {
         dashboard.style.display = 'none';
     }
 });
-
 // --- LOGIN ---
 window.adminLogin = () => {
     const e = document.getElementById('admin-email').value;
