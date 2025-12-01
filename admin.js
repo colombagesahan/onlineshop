@@ -4,18 +4,43 @@ import { collection, doc, setDoc, addDoc, getDocs, deleteDoc, updateDoc, orderBy
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Auth State Listener
+// admin.js - Updated Safety Check
+
+import { auth, db, storage, getSiteSettings } from './firebase-config.js';
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, doc, setDoc, addDoc, getDocs, deleteDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// --- SAFER AUTH LISTENER ---
 onAuthStateChanged(auth, (user) => {
+    const loginScreen = document.getElementById('login-screen');
+    const dashboard = document.getElementById('dashboard');
+
+    // 1. Safety Check: If HTML isn't loaded, stop the crash
+    if (!loginScreen || !dashboard) {
+        console.error("CRITICAL ERROR: HTML elements 'login-screen' or 'dashboard' are missing.");
+        console.log("Did you update admin.html? Try clearing cache (Ctrl+Shift+R).");
+        return; 
+    }
+
+    // 2. Logic
     if (user) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
+        // User is logged in -> Show Dashboard
+        loginScreen.style.display = 'none';
+        dashboard.style.display = 'block';
+        
+        // Load data
         loadSettings();
         loadProducts();
         loadOrders();
     } else {
-        document.getElementById('login-screen').style.display = 'block';
-        document.getElementById('dashboard').style.display = 'none';
+        // User is NOT logged in -> Show Login
+        loginScreen.style.display = 'block';
+        dashboard.style.display = 'none';
     }
 });
+
+// ... rest of your code (window.adminLogin, etc.) ...
 
 // Login
 window.adminLogin = () => {
