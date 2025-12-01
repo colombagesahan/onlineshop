@@ -35,6 +35,7 @@ async function initShop() {
     
     // Auto-populate Category Filter
     const catSelect = document.getElementById('category-filter');
+    catSelect.innerHTML = '<option value="all">All Categories</option>';
     categories.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat;
@@ -90,8 +91,10 @@ window.openProductModal = (id) => {
     
     let videoHTML = '';
     if(p.youtubeLink && p.youtubeLink.includes('v=')) {
-        const videoId = p.youtubeLink.split('v=')[1].split('&')[0];
-        videoHTML = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="margin:10px 0; border-radius:8px;"></iframe>`;
+        try {
+            const videoId = p.youtubeLink.split('v=')[1].split('&')[0];
+            videoHTML = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="margin:10px 0; border-radius:8px;"></iframe>`;
+        } catch(e) {}
     }
 
     const imagesHTML = p.images ? p.images.map(img => `<img src="${img}" style="width:60px; height:60px; object-fit:cover; margin:5px; border-radius:4px; border:1px solid #ddd;">`).join('') : '';
