@@ -3,52 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Shop</title>
+    <title>My Online Shop</title>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav id="navbar">
-        <div id="brand-area">
-            <h2 id="biz-name">Loading...</h2>
-        </div>
-        <div>
-            <button onclick="openCart()">Cart (<span id="cart-count">0</span>)</button>
+    <nav>
+        <div class="container">
+            <div id="brand-area" class="nav-brand">
+                <i class="fa-solid fa-store"></i> <span id="biz-name">Loading...</span>
+            </div>
+            <button class="cart-btn" onclick="openCart()">
+                <i class="fa-solid fa-shopping-cart"></i> 
+                <span id="cart-count">0</span>
+            </button>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <header id="hero-section" style="background:#eee; padding:50px 20px; text-align:center;">
-        <h1 id="hero-text">Welcome</h1>
+    <!-- Hero -->
+    <header id="hero-section">
+        <div class="container">
+            <h1 id="hero-text">Welcome to our store</h1>
+        </div>
     </header>
 
     <!-- Search & Filter -->
     <div class="container">
-        <input type="text" id="search-bar" placeholder="Search products..." onkeyup="filterProducts()">
-        <select id="category-filter" onchange="filterProducts()">
-            <option value="all">All Categories</option>
-            <!-- Categories injected by JS -->
-        </select>
+        <div class="filter-bar">
+            <input type="text" id="search-bar" placeholder="🔍 Search products..." onkeyup="filterProducts()">
+            <select id="category-filter" onchange="filterProducts()">
+                <option value="all">All Categories</option>
+                <!-- Categories will auto-load here -->
+            </select>
+        </div>
     </div>
 
     <!-- Products -->
     <div class="container">
         <div id="product-list" class="product-grid">
-            <!-- Products injected here -->
+            <p style="text-align:center; width:100%;">Loading Products...</p>
         </div>
     </div>
 
-    <!-- About Us -->
-    <div class="container" id="about-section">
-        <h2>About Us</h2>
-        <p id="vision-mission">Loading...</p>
-    </div>
-
-    <!-- Contact -->
-    <div class="container">
-        <h2>Contact Us</h2>
-        <p id="contact-details">Loading...</p>
+    <!-- Info Sections -->
+    <div class="container" style="margin-top: 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        <div class="product-card card-body">
+            <h3><i class="fa-solid fa-bullseye"></i> About Us</h3>
+            <p id="vision-mission">...</p>
+        </div>
+        <div class="product-card card-body">
+            <h3><i class="fa-solid fa-phone"></i> Contact Us</h3>
+            <p id="contact-details">...</p>
+        </div>
     </div>
 
     <!-- PRODUCT DETAILS MODAL -->
@@ -63,26 +72,24 @@
     <div id="cart-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2>Your Cart</h2>
+            <h2><i class="fa-solid fa-bag-shopping"></i> Your Cart</h2>
             <div id="cart-items"></div>
-            <h3>Total: <span id="cart-total">0</span></h3>
+            
+            <div class="total-box">
+                <span>Total</span>
+                <span id="cart-total">0</span>
+            </div>
             
             <hr>
             <h3>Checkout Details</h3>
-            <input type="text" id="cust-name" placeholder="Your Name">
+            <input type="text" id="cust-name" placeholder="Full Name">
             <input type="text" id="cust-address" placeholder="Delivery Address">
             <input type="tel" id="cust-phone" placeholder="Phone Number">
-            <input type="tel" id="cust-whatsapp" placeholder="WhatsApp Number">
+            <input type="tel" id="cust-whatsapp" placeholder="WhatsApp Number (for updates)">
 
-            <!-- Payment Plugin Placeholders -->
-            <div id="payment-plugins">
-                <!-- PASTE PAYPAL/PAYHERE BUTTON CODES HERE -->
-                <!-- <div id="paypal-button-container"></div> -->
-                <p><em>COD (Cash on Delivery) available.</em></p>
-            </div>
-
-            <button onclick="checkoutWhatsApp()">Send Order via WhatsApp</button>
-            <button onclick="closeModal('cart-modal')" style="background:#666">Continue Shopping</button>
+            <button onclick="checkoutWhatsApp()" style="width:100%; background:#25D366; margin-top:10px;">
+                <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
+            </button>
         </div>
     </div>
 
