@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login-screen" class="container" style="text-align:center; margin-top:50px;">
+        <h2>Admin Login</h2>
+        <input type="email" id="admin-email" placeholder="Email" style="max-width:300px;">
+        <br>
+        <input type="password" id="admin-pass" placeholder="Password" style="max-width:300px;">
+        <br>
+        <button onclick="adminLogin()">Login</button>
+    </div>
+
+    <div id="dashboard" class="container" style="display:none;">
+        <nav>
+            <h3>Admin Panel</h3>
+            <button onclick="logout()">Logout</button>
+        </nav>
+
+        <div class="admin-tabs">
+            <button onclick="showTab('settings')">Shop Settings</button>
+            <button onclick="showTab('products')">Products</button>
+            <button onclick="showTab('orders')">Orders</button>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="settings" class="admin-section active">
+            <h2>Shop Customization</h2>
+            <label>Business Name</label>
+            <input type="text" id="set-bizName">
+            
+            <label>Logo URL (Upload to imgur or use storage below)</label>
+            <input type="file" id="set-logo-file">
+            <input type="hidden" id="set-logo-url">
+            <button onclick="uploadImage('set-logo-file', 'set-logo-url')">Upload Logo</button>
+            
+            <label>Primary Color</label>
+            <input type="color" id="set-color">
+            
+            <label>Owner WhatsApp Number (International format without +)</label>
+            <input type="text" id="set-phone">
+
+            <label>Hero Text</label>
+            <input type="text" id="set-hero">
+
+            <label>Vision & Mission</label>
+            <textarea id="set-vision"></textarea>
+
+            <label>Contact Info</label>
+            <textarea id="set-contact"></textarea>
+
+            <button onclick="saveSettings()" style="background:green; margin-top:20px;">Save Settings</button>
+        </div>
+
+        <!-- PRODUCTS TAB -->
+        <div id="products" class="admin-section">
+            <h2>Add Product</h2>
+            <input type="text" id="prod-title" placeholder="Product Title">
+            <input type="number" id="prod-price" placeholder="Price">
+            <input type="number" id="prod-stock" placeholder="Stock Quantity">
+            <input type="text" id="prod-badge" placeholder="Badge (e.g. 10% OFF)">
+            <input type="text" id="prod-cat" placeholder="Category">
+            <input type="text" id="prod-video" placeholder="YouTube URL">
+            <textarea id="prod-desc" placeholder="Description"></textarea>
+            
+            <label>Upload Images (Max 3)</label>
+            <input type="file" id="prod-img-1">
+            <input type="file" id="prod-img-2">
+            <input type="file" id="prod-img-3">
+
+            <button onclick="addProduct()">Create Product</button>
+            <hr>
+            <h2>Existing Products</h2>
+            <div id="admin-product-list"></div>
+        </div>
+
+        <!-- ORDERS TAB -->
+        <div id="orders" class="admin-section">
+            <h2>Incoming Orders</h2>
+            <div id="order-list"></div>
+        </div>
+    </div>
+
+    <script type="module" src="admin.js"></script>
+    <script>
+        // Tab switching logic
+        function showTab(id) {
+            document.querySelectorAll('.admin-section').forEach(d => d.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
