@@ -14,25 +14,32 @@ const firebaseConfig = {
   measurementId: "G-6YLGGH2NDD"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Helper to load site settings (Logo, Color, Phone)
+// Helper to load site settings - THIS WAS LIKELY MISSING
 export async function getSiteSettings() {
-    const docRef = doc(db, "settings", "general");
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-        return docSnap.data();
-    } else {
-        return {
-            bizName: "Add Business Name",
-            primaryColor: "#333",
-            ownerPhone: "",
-            logoUrl: ""
-        };
+    try {
+        const docRef = doc(db, "settings", "general");
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return docSnap.data();
+        } else {
+            return {
+                bizName: "Add Business Name",
+                primaryColor: "#333",
+                ownerPhone: "",
+                logoUrl: ""
+            };
+        }
+    } catch (error) {
+        console.error("Error fetching settings:", error);
+        return {}; 
     }
 }
 
+// Export everything so other files can use them
 export { auth, db, storage };
