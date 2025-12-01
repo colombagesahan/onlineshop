@@ -20,7 +20,18 @@
             <h3>Admin Panel</h3>
             <button onclick="logout()">Logout</button>
         </nav>
+<div class="admin-header">
+    <h3><i class="fa-solid fa-gauge-high"></i> Dashboard</h3>
+    
+    <div style="display:flex; align-items:center;">
+        <!-- This link is hidden (display:none) until you log in -->
+        <a id="live-shop-link" href="#" target="_blank" style="display:none; background:white; color:#333; padding:8px 15px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:12px; margin-right:10px;">
+            <i class="fa-solid fa-up-right-from-square"></i> Open My Live Shop
+        </a>
 
+        <button onclick="logout()" style="background:var(--danger); font-size:12px;">Logout</button>
+    </div>
+</div>
         <div class="admin-tabs">
             <button onclick="showTab('settings')">Shop Settings</button>
             <button onclick="showTab('products')">Products</button>
