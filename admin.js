@@ -11,8 +11,13 @@ const showToast = (msg) => {
         t.className = "show";
         setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
     } else {
-        alert(msg);
+        console.log("Toast:", msg);
     }
+};
+
+const getVal = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value : "";
 };
 
 // --- AUTH LISTENER ---
@@ -25,11 +30,9 @@ onAuthStateChanged(auth, (user) => {
         if(dashboard) dashboard.classList.remove('hidden');
         if(document.getElementById('user-email-display')) document.getElementById('user-email-display').innerText = user.email;
         
-        // Setup Shop Link
         const btn = document.getElementById('live-shop-btn');
         if(btn) btn.href = `shop.html?store=${user.uid}`;
 
-        // Load Data
         loadSettings(user.uid);
         loadProducts(user.uid);
         loadOrders(user.uid);
@@ -39,19 +42,18 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- LOGIN / REGISTER ---
+// --- LOGIN ---
 window.adminLogin = () => {
-    const e = document.getElementById('admin-email').value;
-    const p = document.getElementById('admin-pass').value;
+    const e = getVal('admin-email');
+    const p = getVal('admin-pass');
     
-    if(!e || !p) return alert("Please enter email and password");
+    if(!e || !p) return alert("Enter email and password");
 
     signInWithEmailAndPassword(auth, e, p)
-        .then(() => showToast("Welcome back!"))
+        .then(() => showToast("Login Successful"))
         .catch(() => {
-            // If login fails, try to create account
             createUserWithEmailAndPassword(auth, e, p)
-                .then(() => showToast("Account Created!"))
+                .then(() => showToast("Account Created"))
                 .catch(err => alert(err.message));
         });
 };
@@ -70,46 +72,44 @@ async function loadSettings(uid) {
             if(document.getElementById('set-logo-url')) document.getElementById('set-logo-url').value = d.logoUrl || "";
             if(document.getElementById('set-hero')) document.getElementById('set-hero').value = d.heroText || "";
         }
-    } catch(e) { console.log("Settings not loaded yet"); }
+    } catch(e) { console.log("Settings empty"); }
 }
 
 window.saveSettings = async () => {
     const user = auth.currentUser;
     if(!user) return;
     try {
-        const config = {
-            bizName: document.getElementById('set-bizName').value || "",
-            primaryColor: document.getElementById('set-color').value || "#2563eb",
-            ownerPhone: document.getElementById('set-phone').value || "",
-            logoUrl: document.getElementById('set-logo-url').value || "",
-            heroText: document.getElementById('set-hero').value || ""
-        };
-        await setDoc(doc(db, "shops", user.uid, "settings", "general"), config);
+        await setDoc(doc(db, "shops", user.uid, "settings", "general"), {
+            bizName: getVal('set-bizName'),
+            primaryColor: getVal('set-color'),
+            ownerPhone: getVal('set-phone'),
+            logoUrl: getVal('set-logo-url'),
+            heroText: getVal('set-hero')
+        });
         showToast("Settings Saved!");
     } catch(e) { alert(e.message); }
 };
 
-// --- FIX: UPDATED IMAGE UPLOAD FUNCTION ---
-window.uploadImage = async (inputId, hiddenId = null) => {
-    const fileInput = document.getElementById(inputId);
-    if(!fileInput || !fileInput.files[0]) return null;
+// --- SAFE IMAGE UPLOAD ---
+window.uploadImage = async (inputId, hiddenId) => {
+    const el = document.getElementById(inputId);
+    if(!el || !el.files[0]) return null; // Returns NULL if no file
     
-    const file = fileInput.files[0];
+    const file = el.files[0];
     const sRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
     
     try {
-        await uploadBytes(sRef, file);
-        const url = await getDownloadURL(sRef);
+        const snap = await uploadBytes(sRef, file);
+        const url = await getDownloadURL(snap.ref);
         
-        // Only try to set value if the hidden input actually exists
-        if(hiddenId && document.getElementById(hiddenId)) {
-            document.getElementById(hiddenId).value = url;
-        }
+        // If hidden input exists, set it (useful for logo upload)
+        const hiddenEl = document.getElementById(hiddenId);
+        if(hiddenEl) hiddenEl.value = url;
         
-        return url;
+        return url; // Return the string URL
     } catch(e) { 
-        console.error(e);
-        return null; 
+        console.error("Upload Error:", e);
+        return null; // Return NULL on error
     }
 };
 
@@ -118,44 +118,49 @@ window.addProduct = async () => {
     const user = auth.currentUser;
     if(!user) return alert("Please login");
 
-    const title = document.getElementById('prod-title').value;
-    const price = parseFloat(document.getElementById('prod-price').value);
+    const title = getVal('prod-title');
+    const priceStr = getVal('prod-price');
     
-    if(!title || !price) return alert("Title and Price needed");
-    showToast("Uploading & Saving...");
+    if(!title || !priceStr) return alert("Title and Price required");
 
-    // 1. Upload Images Safely
+    showToast("Uploading...");
+
+    // 1. Upload Images
     let images = [];
+    // Check all 3 inputs
     for(let i=1; i<=3; i++) {
-        // We do not pass a hiddenId here, just get the URL
         const url = await window.uploadImage(`prod-img-${i}`);
-        if(url) images.push(url);
+        if(url !== null) {
+            images.push(url); // Only add if URL is valid string
+        }
     }
 
-    // 2. Save to Firestore
+    // 2. Prepare Data (Ensure NO undefined values)
+    const productData = {
+        title: title,
+        price: parseFloat(priceStr) || 0,
+        stock: parseInt(getVal('prod-stock')) || 0,
+        category: getVal('prod-cat') || "General",
+        description: getVal('prod-desc') || "",
+        youtubeLink: getVal('prod-video') || "",
+        images: images, // Array of strings (or empty array)
+        createdAt: Date.now()
+    };
+
+    // 3. Save
     try {
-        await addDoc(collection(db, "shops", user.uid, "products"), {
-            title: title, 
-            price: price,
-            stock: parseInt(document.getElementById('prod-stock').value) || 0,
-            category: document.getElementById('prod-cat').value || "General",
-            description: document.getElementById('prod-desc').value || "",
-            youtubeLink: document.getElementById('prod-video').value || "",
-            images: images, // This is now a clean array of strings
-            createdAt: Date.now()
-        });
-        
+        await addDoc(collection(db, "shops", user.uid, "products"), productData);
         showToast("Product Created!");
         
-        // Clear inputs
-        document.getElementById('prod-title').value = "";
-        document.getElementById('prod-price').value = "";
-        document.getElementById('prod-img-1').value = "";
+        // Reset Form
+        if(document.getElementById('prod-title')) document.getElementById('prod-title').value = "";
+        if(document.getElementById('prod-price')) document.getElementById('prod-price').value = "";
+        if(document.getElementById('prod-img-1')) document.getElementById('prod-img-1').value = "";
         
         loadProducts(user.uid);
     } catch(e) {
         console.error(e);
-        alert("Error saving product: " + e.message);
+        alert("Database Error: " + e.message);
     }
 };
 
@@ -169,7 +174,7 @@ async function loadProducts(uid) {
     
     snap.forEach(d => {
         const p = d.data();
-        const img = p.images && p.images[0] ? p.images[0] : '';
+        const img = (p.images && p.images.length > 0) ? p.images[0] : '';
         const imgHTML = img ? `<div class="product-img" style="background-image:url('${img}')"></div>` : `<div class="product-img" style="background:#eee"></div>`;
         
         list.innerHTML += `
@@ -186,7 +191,7 @@ async function loadProducts(uid) {
 }
 
 window.deleteProduct = async (id) => {
-    if(confirm("Delete this product?")) {
+    if(confirm("Delete?")) {
         await deleteDoc(doc(db, "shops", auth.currentUser.uid, "products", id));
         loadProducts(auth.currentUser.uid);
     }
