@@ -3,27 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Build Your Online Store</title>
+    <title>Launch Your Store | E-Com Platform</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        body { text-align: center; padding-top: 50px; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); height: 100vh; }
-        .hero-box { background: white; max-width: 600px; margin: 0 auto; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #333; margin-bottom: 10px; }
-        p { color: #666; margin-bottom: 30px; }
-        .btn-main { background: #2563eb; color: white; text-decoration: none; padding: 15px 30px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; display: inline-block; }
-        .btn-sec { background: transparent; color: #2563eb; border: 2px solid #2563eb; padding: 13px 28px; border-radius: 8px; font-weight: bold; font-size: 1.2rem; text-decoration: none; margin-left: 10px; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <nav>
+        <div class="container">
+            <div class="brand"><i class="fa-solid fa-layer-group"></i> StoreBuilder</div>
+            <a href="admin.html" class="btn btn-primary">Login</a>
+        </div>
+    </nav>
 
-    <div class="hero-box">
-        <h1>Launch Your E-Commerce Business</h1>
-        <p>Create your own online store in seconds. Manage products, orders, and design easily.</p>
-        
-        <!-- Both go to admin.html because Firebase Auth handles Sign Up & Login together -->
-        <a href="admin.html" class="btn-main">Create Account</a>
-        <a href="admin.html" class="btn-sec">Login</a>
+    <div class="hero">
+        <div class="container">
+            <h1>Sell Online, Simply.</h1>
+            <p>Create your professional online store in seconds. Manage products, orders, and customers from one dashboard.</p>
+            <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+                <a href="admin.html" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">Start for Free</a>
+                <a href="#features" class="btn btn-outline" style="padding: 15px 30px; font-size: 1.1rem;">Learn More</a>
+            </div>
+        </div>
     </div>
 
+    <div class="container grid" id="features" style="padding: 50px 20px;">
+        <div class="card">
+            <i class="fa-solid fa-bolt" style="font-size: 2rem; color: var(--primary); margin-bottom: 15px;"></i>
+            <h3>Fast Setup</h3>
+            <p style="color:var(--text-light)">Launch your shop instantly. No coding required.</p>
+        </div>
+        <div class="card">
+            <i class="fa-brands fa-whatsapp" style="font-size: 2rem; color: #22c55e; margin-bottom: 15px;"></i>
+            <h3>WhatsApp Checkout</h3>
+            <p style="color:var(--text-light)">Receive orders directly to your WhatsApp number.</p>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-chart-line" style="font-size: 2rem; color: #7c3aed; margin-bottom: 15px;"></i>
+            <h3>Manage Orders</h3>
+            <p style="color:var(--text-light)">Track stock and order status in real-time.</p>
+        </div>
+    </div>
 </body>
 </html>
