@@ -1,3 +1,4 @@
+// app.js - Customer Shop Logic
 import { db, getSiteSettings } from './firebase-config.js';
 import { collection, getDocs, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -6,58 +7,72 @@ let cart = JSON.parse(localStorage.getItem('shopCart')) || [];
 let siteConfig = {};
 
 async function initShop() {
+    console.log("Initializing Shop...");
+    
     // 1. Load Settings
     siteConfig = await getSiteSettings();
     document.documentElement.style.setProperty('--primary', siteConfig.primaryColor || '#2563eb');
     
-    // Setup Logo/Name
     const brandArea = document.getElementById('brand-area');
     if(siteConfig.logoUrl) {
         brandArea.innerHTML = `<img src="${siteConfig.logoUrl}" class="logo-img">`;
     } else {
-        document.getElementById('biz-name').innerText = siteConfig.bizName;
+        document.getElementById('biz-name').innerText = siteConfig.bizName || "Online Shop";
     }
     
-    document.getElementById('hero-text').innerText = siteConfig.heroText || "Welcome";
-    document.getElementById('vision-mission').innerText = siteConfig.vision || "Details coming soon.";
-    document.getElementById('contact-details').innerText = siteConfig.contact || "Contact us for details.";
+    if(document.getElementById('hero-text')) document.getElementById('hero-text').innerText = siteConfig.heroText || "Welcome";
+    if(document.getElementById('vision-mission')) document.getElementById('vision-mission').innerText = siteConfig.vision || "...";
+    if(document.getElementById('contact-details')) document.getElementById('contact-details').innerText = siteConfig.contact || "...";
 
     // 2. Load Products
-    const querySnapshot = await getDocs(collection(db, "products"));
-    products = [];
-    let categories = new Set(); // Store unique categories
+    try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        products = [];
+        let categories = new Set();
 
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        products.push({ id: doc.id, ...data });
-        if(data.category) categories.add(data.category);
-    });
-    
-    // Auto-populate Category Filter
-    const catSelect = document.getElementById('category-filter');
-    catSelect.innerHTML = '<option value="all">All Categories</option>';
-    categories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.innerText = cat;
-        catSelect.appendChild(opt);
-    });
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            products.push({ id: doc.id, ...data });
+            if(data.category) categories.add(data.category);
+        });
+        
+        console.log("Products Loaded:", products.length);
 
-    renderProducts(products);
-    updateCartUI();
+        // Populate Filters
+        const catSelect = document.getElementById('category-filter');
+        if(catSelect) {
+            catSelect.innerHTML = '<option value="all">All Categories</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                catSelect.appendChild(opt);
+            });
+        }
+
+        renderProducts(products);
+        updateCartUI();
+
+    } catch (error) {
+        console.error("Error loading products:", error);
+        document.getElementById('product-list').innerHTML = `<p style="color:red">Error loading products. <br>Check Firebase Console > Firestore > Rules.<br>Error: ${error.message}</p>`;
+    }
 }
 
 function renderProducts(list) {
     const container = document.getElementById('product-list');
+    if(!container) return;
+    
     container.innerHTML = '';
     
     if(list.length === 0) {
-        container.innerHTML = '<p>No products found.</p>';
+        container.innerHTML = '<p style="text-align:center; width:100%">No products found.</p>';
         return;
     }
 
     list.forEach(p => {
-        if(p.stock > 0) {
+        // Show if stock is undefined (old products) or > 0
+        if(p.stock === undefined || p.stock > 0) {
             const badgeHTML = p.badge ? `<div class="badge">${p.badge}</div>` : '';
             const img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x300?text=No+Image';
             
@@ -70,22 +85,21 @@ function renderProducts(list) {
                     <h3 class="card-title">${p.title}</h3>
                     <div class="card-price">Rs. ${p.price}</div>
                     <div class="btn-group">
-                        <button class="view-btn" data-id="${p.id}">View</button>
-                        <button class="add-btn" data-id="${p.id}">Add to Cart</button>
+                        <button class="view-btn" onclick="openProductModal('${p.id}')">View</button>
+                        <button class="add-btn" data-id="${p.id}" onclick="addToCart('${p.id}')">Add to Cart</button>
                     </div>
                 </div>
             `;
             container.appendChild(div);
         }
     });
-
-    // Re-attach listeners
-    document.querySelectorAll('.view-btn').forEach(b => b.addEventListener('click', (e) => openProductModal(e.target.dataset.id)));
-    document.querySelectorAll('.add-btn').forEach(b => b.addEventListener('click', (e) => addToCart(e.target.dataset.id)));
 }
 
+// Attach to window so HTML can see them
 window.openProductModal = (id) => {
     const p = products.find(x => x.id === id);
+    if(!p) return;
+    
     const modal = document.getElementById('product-modal');
     const body = document.getElementById('modal-body');
     
@@ -105,13 +119,15 @@ window.openProductModal = (id) => {
         <p>${p.description || 'No description available.'}</p>
         ${videoHTML}
         <h3 style="color:var(--primary)">Price: Rs. ${p.price}</h3>
-        <button onclick="addToCart('${p.id}'); closeModal('product-modal')" style="background:var(--primary); color:white; width:100%">Add to Cart</button>
+        <button onclick="addToCart('${p.id}'); closeModal('product-modal')" style="background:var(--primary); color:white; width:100%; padding:10px;">Add to Cart</button>
     `;
     modal.style.display = 'flex';
 };
 
 window.addToCart = (id) => {
     const p = products.find(x => x.id === id);
+    if(!p) return;
+
     const existing = cart.find(x => x.id === id);
     if(existing) {
         existing.qty++;
@@ -119,7 +135,8 @@ window.addToCart = (id) => {
         cart.push({ ...p, qty: 1 });
     }
     updateCartUI();
-    // Simple visual feedback
+    
+    // Feedback
     const btn = document.querySelector(`.add-btn[data-id="${id}"]`);
     if(btn) {
         const oldText = btn.innerText;
@@ -134,9 +151,12 @@ window.addToCart = (id) => {
 
 function updateCartUI() {
     localStorage.setItem('shopCart', JSON.stringify(cart));
-    document.getElementById('cart-count').innerText = cart.reduce((a, b) => a + b.qty, 0);
+    const countSpan = document.getElementById('cart-count');
+    if(countSpan) countSpan.innerText = cart.reduce((a, b) => a + b.qty, 0);
     
     const container = document.getElementById('cart-items');
+    if(!container) return;
+
     container.innerHTML = '';
     let total = 0;
 
@@ -156,7 +176,9 @@ function updateCartUI() {
             </div>
         `;
     });
-    document.getElementById('cart-total').innerText = "Rs. " + total;
+    
+    const totalEl = document.getElementById('cart-total');
+    if(totalEl) totalEl.innerText = "Rs. " + total;
 }
 
 window.removeFromCart = (id) => {
@@ -197,7 +219,7 @@ window.checkoutWhatsApp = async () => {
     cart = [];
     updateCartUI();
     window.open(url, '_blank');
-    closeModal('cart-modal');
+    document.getElementById('cart-modal').style.display = 'none';
 };
 
 window.filterProducts = () => {
