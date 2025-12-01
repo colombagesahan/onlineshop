@@ -3,318 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Store</title>
-    <!-- Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Online Shop</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
-    <!-- Navbar -->
     <nav>
         <div class="container">
-            <div id="brand-area" class="nav-brand">
-                <i class="fa-solid fa-store"></i> <span id="biz-name">Loading...</span>
-            </div>
-            <button class="cart-btn" onclick="openCart()">
-                <i class="fa-solid fa-shopping-cart"></i> 
-                <span id="cart-count">0</span>
+            <div class="brand" id="brand-area">Loading...</div>
+            <button onclick="openCart()" class="btn btn-primary">
+                <i class="fa-solid fa-cart-shopping"></i> <span id="cart-count">0</span>
             </button>
         </div>
     </nav>
 
-    <!-- Hero -->
-    <header id="hero-section">
+    <div class="hero">
         <div class="container">
             <h1 id="hero-text">Welcome</h1>
+            <p id="hero-desc">...</p>
         </div>
-    </header>
+    </div>
 
-    <!-- Search & Filter -->
     <div class="container">
-        <div class="filter-bar">
-            <input type="text" id="search-bar" placeholder="🔍 Search products..." onkeyup="filterProducts()">
-            <select id="category-filter" onchange="filterProducts()">
-                <option value="all">All Categories</option>
+        <div style="display:flex; margin-bottom:20px; gap:10px;">
+            <input type="text" id="search-bar" placeholder="Search products..." onkeyup="filterProducts()">
+            <select id="category-filter" onchange="filterProducts()" style="width:auto; min-width:150px;">
+                <option value="all">All</option>
             </select>
         </div>
+        <div id="product-list" class="grid">Loading...</div>
     </div>
 
-    <!-- Products -->
-    <div class="container">
-        <div id="product-list" class="product-grid">
-            <p style="text-align:center; width:100%;">Loading Store...</p>
+    <!-- MODALS -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button onclick="closeModal('product-modal')" style="float:right; background:none; border:none; font-size:1.5rem;">&times;</button>
+            <div id="modal-content"></div>
         </div>
     </div>
 
-    <!-- Info Sections -->
-    <div class="container" style="margin-top: 50px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-        <div class="product-card card-body">
-            <h3><i class="fa-solid fa-bullseye"></i> About Us</h3>
-            <p id="vision-mission">...</p>
-        </div>
-        <div class="product-card card-body">
-            <h3><i class="fa-solid fa-phone"></i> Contact Us</h3>
-            <p id="contact-details">...</p>
-        </div>
-    </div>
-
-    <!-- PRODUCT MODAL -->
-    <div id="product-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('product-modal')">&times;</span>
-            <div id="modal-body"></div>
-        </div>
-    </div>
-
-    <!-- CART MODAL -->
-    <div id="cart-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('cart-modal')">&times;</span>
-            <h2><i class="fa-solid fa-bag-shopping"></i> Your Cart</h2>
-            <div id="cart-items"></div>
-            <div class="total-box">
-                <span>Total</span>
-                <span id="cart-total">0</span>
+    <div id="cart-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button onclick="closeModal('cart-modal')" style="float:right; background:none; border:none; font-size:1.5rem;">&times;</button>
+            <h2>Your Cart</h2>
+            <div id="cart-items" style="max-height:300px; overflow-y:auto; margin:15px 0;"></div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem; margin-bottom:20px;">
+                <span>Total:</span> <span id="cart-total">0</span>
             </div>
-            <hr>
-            <h3>Checkout Details</h3>
-            <input type="text" id="cust-name" placeholder="Full Name">
-            <input type="text" id="cust-address" placeholder="Delivery Address">
-            <input type="tel" id="cust-phone" placeholder="Phone Number">
-            <button onclick="checkoutWhatsApp()" style="width:100%; background:#25D366; margin-top:10px;">
-                <i class="fa-brands fa-whatsapp"></i> Order via WhatsApp
-            </button>
+            
+            <input type="text" id="c-name" placeholder="Your Name">
+            <input type="text" id="c-address" placeholder="Address">
+            <input type="tel" id="c-phone" placeholder="Phone">
+            <button onclick="checkout()" class="btn btn-primary" style="width:100%"><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</button>
         </div>
     </div>
 
-    <script>
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    </script>
-
-    <!-- LOGIC FOR MULTI-TENANT SHOP -->
-    <script type="module">
-        import { db } from './firebase-config.js';
-        import { collection, getDocs, doc, getDoc, addDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-        // 1. GET THE SHOP ID FROM THE URL (e.g. shop.html?store=XYZ123)
-        const urlParams = new URLSearchParams(window.location.search);
-        const shopId = urlParams.get('store');
-
-        // Variables
-        let products = [];
-        let cart = [];
-        let ownerPhone = "";
-
-        // If no ID is provided, show error
-        if(!shopId) {
-            document.body.innerHTML = `<div style="text-align:center; padding:50px;"><h1>Store Not Found</h1><p>No Store ID provided in the link.</p><a href="index.html">Go Home</a></div>`;
-        } else {
-            // Load Cart specifically for THIS shop
-            cart = JSON.parse(localStorage.getItem(`cart_${shopId}`)) || [];
-            initShop();
-        }
-
-        async function initShop() {
-            console.log("Loading Shop ID:", shopId);
-
-            try {
-                // A. Load Settings (From shops/{id}/settings/general)
-                const settingsRef = doc(db, "shops", shopId, "settings", "general");
-                const settingsSnap = await getDoc(settingsRef);
-                
-                if(settingsSnap.exists()) {
-                    const data = settingsSnap.data();
-                    ownerPhone = data.ownerPhone || "";
-                    
-                    // Apply Colors & Text
-                    document.documentElement.style.setProperty('--primary', data.primaryColor || '#2563eb');
-                    
-                    const brandArea = document.getElementById('brand-area');
-                    if(data.logoUrl) {
-                        brandArea.innerHTML = `<img src="${data.logoUrl}" class="logo-img">`;
-                    } else {
-                        document.getElementById('biz-name').innerText = data.bizName || "Online Store";
-                    }
-
-                    document.getElementById('hero-text').innerText = data.heroText || "Welcome";
-                    document.getElementById('vision-mission').innerText = data.vision || "";
-                    document.getElementById('contact-details').innerText = data.contact || "";
-                }
-
-                // B. Load Products (From shops/{id}/products)
-                const prodsRef = collection(db, "shops", shopId, "products");
-                const querySnapshot = await getDocs(prodsRef);
-                
-                products = [];
-                let categories = new Set();
-
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    products.push({ id: doc.id, ...data });
-                    if(data.category) categories.add(data.category);
-                });
-
-                // Populate Filters
-                const catSelect = document.getElementById('category-filter');
-                categories.forEach(cat => {
-                    const opt = document.createElement('option');
-                    opt.value = cat;
-                    opt.innerText = cat;
-                    catSelect.appendChild(opt);
-                });
-
-                renderProducts(products);
-                updateCartUI();
-
-            } catch (error) {
-                console.error(error);
-                document.getElementById('product-list').innerHTML = `<p>Error loading store. Ensure the Shop ID is correct.</p>`;
-            }
-        }
-
-        function renderProducts(list) {
-            const container = document.getElementById('product-list');
-            container.innerHTML = '';
-            
-            if(list.length === 0) {
-                container.innerHTML = '<p>No products found.</p>';
-                return;
-            }
-
-            list.forEach(p => {
-                if(p.stock === undefined || p.stock > 0) {
-                    const badgeHTML = p.badge ? `<div class="badge">${p.badge}</div>` : '';
-                    const img = p.images && p.images.length > 0 ? p.images[0] : 'https://placehold.co/400x300?text=No+Image';
-                    
-                    const div = document.createElement('div');
-                    div.className = 'product-card';
-                    div.innerHTML = `
-                        ${badgeHTML}
-                        <img src="${img}" class="product-img">
-                        <div class="card-body">
-                            <h3 class="card-title">${p.title}</h3>
-                            <div class="card-price">Rs. ${p.price}</div>
-                            <div class="btn-group">
-                                <button class="view-btn" onclick="window.openProductModal('${p.id}')">View</button>
-                                <button class="add-btn" onclick="window.addToCart('${p.id}')">Add</button>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                }
-            });
-        }
-
-        // --- GLOBAL FUNCTIONS FOR HTML BUTTONS ---
-        
-        window.openProductModal = (id) => {
-            const p = products.find(x => x.id === id);
-            const modal = document.getElementById('product-modal');
-            const body = document.getElementById('modal-body');
-            
-            // Video
-            let videoHTML = '';
-            if(p.youtubeLink && p.youtubeLink.includes('v=')) {
-                try {
-                    const videoId = p.youtubeLink.split('v=')[1].split('&')[0];
-                    videoHTML = `<iframe width="100%" height="250" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen style="margin:10px 0; border-radius:8px;"></iframe>`;
-                } catch(e){}
-            }
-
-            // Images
-            const imagesHTML = p.images ? p.images.map(img => `<img src="${img}" style="width:60px; height:60px; object-fit:cover; margin:5px;">`).join('') : '';
-
-            body.innerHTML = `
-                <h2>${p.title}</h2>
-                <div>${imagesHTML}</div>
-                <p>${p.description || ''}</p>
-                ${videoHTML}
-                <h3>Rs. ${p.price}</h3>
-                <button onclick="window.addToCart('${p.id}'); closeModal('product-modal')" style="background:var(--primary); color:white; width:100%; padding:10px;">Add to Cart</button>
-            `;
-            modal.style.display = 'flex';
-        };
-
-        window.addToCart = (id) => {
-            const p = products.find(x => x.id === id);
-            const existing = cart.find(x => x.id === id);
-            if(existing) {
-                existing.qty++;
-            } else {
-                cart.push({ ...p, qty: 1 });
-            }
-            updateCartUI();
-        };
-
-        function updateCartUI() {
-            // Save to LocalStorage with Shop ID (so carts don't mix)
-            localStorage.setItem(`cart_${shopId}`, JSON.stringify(cart));
-            
-            document.getElementById('cart-count').innerText = cart.reduce((a, b) => a + b.qty, 0);
-            const container = document.getElementById('cart-items');
-            container.innerHTML = '';
-            let total = 0;
-
-            cart.forEach(item => {
-                total += item.price * item.qty;
-                container.innerHTML += `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:5px;">
-                        <div>${item.title} <small>x${item.qty}</small></div>
-                        <div>${item.price * item.qty} <button onclick="window.removeFromCart('${item.id}')" style="color:red; background:none; padding:0;">x</button></div>
-                    </div>
-                `;
-            });
-            document.getElementById('cart-total').innerText = "Rs. " + total;
-        }
-
-        window.removeFromCart = (id) => {
-            cart = cart.filter(x => x.id !== id);
-            updateCartUI();
-        };
-
-        window.openCart = () => document.getElementById('cart-modal').style.display = 'flex';
-
-        window.checkoutWhatsApp = async () => {
-            const name = document.getElementById('cust-name').value;
-            const address = document.getElementById('cust-address').value;
-            const phone = document.getElementById('cust-phone').value;
-            
-            if(!name || !address || !phone) return alert("Please fill details");
-
-            // SAVE ORDER TO: shops/{id}/orders
-            try {
-                await addDoc(collection(db, "shops", shopId, "orders"), {
-                    customer: { name, address, phone },
-                    items: cart,
-                    total: document.getElementById('cart-total').innerText,
-                    status: "New",
-                    timestamp: Timestamp.now()
-                });
-            } catch(e) { console.error("Order Error", e); }
-
-            // WHATSAPP
-            let msg = `*Order for Store*\nName: ${name}\n\n`;
-            cart.forEach(i => msg += `- ${i.title} (${i.qty})\n`);
-            msg += `\nTotal: ${document.getElementById('cart-total').innerText}`;
-            
-            const url = `https://wa.me/${ownerPhone}?text=${encodeURIComponent(msg)}`;
-            
-            cart = [];
-            updateCartUI();
-            window.open(url, '_blank');
-        };
-
-        window.filterProducts = () => {
-            const term = document.getElementById('search-bar').value.toLowerCase();
-            const cat = document.getElementById('category-filter').value;
-            const filtered = products.filter(p => {
-                const matchesTerm = p.title.toLowerCase().includes(term);
-                const matchesCat = cat === 'all' || p.category === cat;
-                return matchesTerm && matchesCat;
-            });
-            renderProducts(filtered);
-        };
-    </script>
+    <script>function closeModal(id){ document.getElementById(id).style.display='none'; }</script>
+    <script type="module" src="shop.js"></script>
 </body>
 </html>
