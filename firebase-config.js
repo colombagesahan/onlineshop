@@ -1,9 +1,9 @@
-// firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
+// --- PASTE YOUR FIREBASE KEYS HERE ---
 const firebaseConfig = {
   apiKey: "AIzaSyBUjzMFao9BS3uXBOW3qYrLVqHaGn8qIk4",
   authDomain: "onlineshop-30cd1.firebaseapp.com",
@@ -14,13 +14,14 @@ const firebaseConfig = {
   measurementId: "G-6YLGGH2NDD"
 };
 
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Helper to load site settings - THIS WAS LIKELY MISSING
+// --- THIS IS THE PART YOU WERE MISSING ---
 export async function getSiteSettings() {
     try {
         const docRef = doc(db, "settings", "general");
@@ -29,17 +30,17 @@ export async function getSiteSettings() {
             return docSnap.data();
         } else {
             return {
-                bizName: "Add Business Name",
+                bizName: "My Shop",
                 primaryColor: "#333",
                 ownerPhone: "",
                 logoUrl: ""
             };
         }
     } catch (error) {
-        console.error("Error fetching settings:", error);
-        return {}; 
+        console.error("Settings Error:", error);
+        return {};
     }
 }
 
-// Export everything so other files can use them
+// Export everything
 export { auth, db, storage };
