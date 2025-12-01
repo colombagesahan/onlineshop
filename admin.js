@@ -1,214 +1,187 @@
 import { auth, db, storage } from './firebase-config.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { collection, doc, setDoc, addDoc, getDocs, deleteDoc, getDoc, updateDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+// --- HELPERS ---
+const showToast = (msg) => {
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.className = "show";
+    setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+};
 
 // --- AUTH LISTENER ---
 onAuthStateChanged(auth, (user) => {
     const loginScreen = document.getElementById('login-screen');
     const dashboard = document.getElementById('dashboard');
-    const shopLink = document.getElementById('live-shop-link'); // <--- NEW LINE
-
-    if (!loginScreen || !dashboard) return;
 
     if (user) {
-        // 1. Show Dashboard
         loginScreen.style.display = 'none';
-        dashboard.style.display = 'block';
+        dashboard.classList.remove('hidden');
+        document.getElementById('user-email-display').innerText = user.email;
+        
+        // Setup Shop Link
+        const btn = document.getElementById('live-shop-btn');
+        btn.href = `shop.html?store=${user.uid}`;
 
-        // 2. Activate the Shop Link
-        if (shopLink) {
-            shopLink.href = `shop.html?store=${user.uid}`; // Add the User ID to the URL
-            shopLink.style.display = 'inline-block';       // Make it visible
-        }
-
-        // 3. Load Data
+        // Load Data
         loadSettings(user.uid);
         loadProducts(user.uid);
         loadOrders(user.uid);
     } else {
-        // Show Login
-        loginScreen.style.display = 'block';
-        dashboard.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        dashboard.classList.add('hidden');
     }
 });
-// --- LOGIN ---
+
+// --- LOGIN / REGISTER ---
 window.adminLogin = () => {
     const e = document.getElementById('admin-email').value;
     const p = document.getElementById('admin-pass').value;
+    
+    // Try Login, if fails, Try Register
     signInWithEmailAndPassword(auth, e, p)
-        .then(() => console.log("Logged in"))
-        .catch(err => alert("Login Failed: " + err.message));
+        .then(() => showToast("Welcome back!"))
+        .catch(() => {
+            createUserWithEmailAndPassword(auth, e, p)
+                .then(() => showToast("Account Created!"))
+                .catch(err => alert(err.message));
+        });
 };
 
-// --- LOGOUT ---
-window.logout = () => {
-    signOut(auth).then(() => location.reload());
-};
+window.logout = () => signOut(auth).then(() => location.reload());
 
-// --- SETTINGS (Saved to shops/{uid}/settings/general) ---
+// --- SETTINGS ---
 async function loadSettings(uid) {
     try {
-        const docRef = doc(db, "shops", uid, "settings", "general");
-        const docSnap = await getDoc(docRef);
-        
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            if(document.getElementById('set-bizName')) document.getElementById('set-bizName').value = data.bizName || "";
-            if(document.getElementById('set-color')) document.getElementById('set-color').value = data.primaryColor || "#000000";
-            if(document.getElementById('set-phone')) document.getElementById('set-phone').value = data.ownerPhone || "";
-            if(document.getElementById('set-logo-url')) document.getElementById('set-logo-url').value = data.logoUrl || "";
-            if(document.getElementById('set-hero')) document.getElementById('set-hero').value = data.heroText || "";
-            if(document.getElementById('set-vision')) document.getElementById('set-vision').value = data.vision || "";
-            if(document.getElementById('set-contact')) document.getElementById('set-contact').value = data.contact || "";
+        const snap = await getDoc(doc(db, "shops", uid, "settings", "general"));
+        if (snap.exists()) {
+            const d = snap.data();
+            document.getElementById('set-bizName').value = d.bizName || "";
+            document.getElementById('set-color').value = d.primaryColor || "#2563eb";
+            document.getElementById('set-phone').value = d.ownerPhone || "";
+            document.getElementById('set-logo-url').value = d.logoUrl || "";
+            document.getElementById('set-hero').value = d.heroText || "";
         }
-    } catch(e) {
-        console.log("No settings found yet.");
-    }
+    } catch(e) {}
 }
 
 window.saveSettings = async () => {
     const user = auth.currentUser;
-    if(!user) return alert("Please login first");
-
+    if(!user) return;
     try {
         const config = {
             bizName: document.getElementById('set-bizName').value,
             primaryColor: document.getElementById('set-color').value,
             ownerPhone: document.getElementById('set-phone').value,
             logoUrl: document.getElementById('set-logo-url').value,
-            heroText: document.getElementById('set-hero').value,
-            vision: document.getElementById('set-vision').value,
-            contact: document.getElementById('set-contact').value
+            heroText: document.getElementById('set-hero').value
         };
-        // SAVE TO USER FOLDER
         await setDoc(doc(db, "shops", user.uid, "settings", "general"), config);
-        alert("Settings Saved!");
-    } catch(e) {
-        alert("Error saving: " + e.message);
-    }
+        showToast("Settings Saved!");
+    } catch(e) { alert(e.message); }
 };
 
-// --- IMAGE UPLOAD ---
-window.uploadImage = async (inputId, hiddenInputId = null) => {
+window.uploadImage = async (inputId, hiddenId) => {
     const file = document.getElementById(inputId).files[0];
-    if (!file) return alert("No file selected");
+    if(!file) return alert("Select a file first");
     
-    const storageRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
+    const sRef = ref(storage, `uploads/${Date.now()}_${file.name}`);
     try {
-        await uploadBytes(storageRef, file);
-        const url = await getDownloadURL(storageRef);
-        if(hiddenInputId) document.getElementById(hiddenInputId).value = url;
-        alert("Upload Complete");
+        await uploadBytes(sRef, file);
+        const url = await getDownloadURL(sRef);
+        document.getElementById(hiddenId).value = url;
+        showToast("Upload Complete!");
         return url;
-    } catch(e) {
-        alert("Upload Error: " + e.message);
-        return null;
-    }
+    } catch(e) { alert("Upload Failed"); }
 };
 
-// --- PRODUCTS (Saved to shops/{uid}/products) ---
+// --- PRODUCTS ---
 window.addProduct = async () => {
     const user = auth.currentUser;
-    if(!user) return alert("Please login first");
-
     const title = document.getElementById('prod-title').value;
     const price = parseFloat(document.getElementById('prod-price').value);
-    const stock = parseInt(document.getElementById('prod-stock').value);
     
-    if(!title || !price) return alert("Title and Price required");
+    if(!title || !price) return alert("Title and Price needed");
+    showToast("Saving...");
 
     let images = [];
-    if(document.getElementById('prod-img-1').files[0]) images.push(await window.uploadImage('prod-img-1'));
-    if(document.getElementById('prod-img-2').files[0]) images.push(await window.uploadImage('prod-img-2'));
-    if(document.getElementById('prod-img-3').files[0]) images.push(await window.uploadImage('prod-img-3'));
+    for(let i=1; i<=3; i++) {
+        if(document.getElementById(`prod-img-${i}`).files[0]) {
+            images.push(await window.uploadImage(`prod-img-${i}`));
+        }
+    }
 
-    const newProd = {
-        title, price, stock,
-        description: document.getElementById('prod-desc').value,
+    await addDoc(collection(db, "shops", user.uid, "products"), {
+        title, price,
+        stock: parseInt(document.getElementById('prod-stock').value) || 0,
         category: document.getElementById('prod-cat').value,
-        badge: document.getElementById('prod-badge').value,
+        description: document.getElementById('prod-desc').value,
         youtubeLink: document.getElementById('prod-video').value,
-        images: images,
+        images,
         createdAt: Date.now()
-    };
-
-    // SAVE TO USER FOLDER
-    await addDoc(collection(db, "shops", user.uid, "products"), newProd);
-    alert("Product Added");
+    });
+    showToast("Product Created!");
     loadProducts(user.uid);
 };
 
 async function loadProducts(uid) {
     const list = document.getElementById('admin-product-list');
-    if(!list) return;
-
-    // LOAD FROM USER FOLDER
     const q = query(collection(db, "shops", uid, "products"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    
     list.innerHTML = '';
-    snap.forEach(doc => {
-        const p = doc.data();
-        list.innerHTML += `<div style="border-bottom:1px solid #ddd; padding:10px;"><b>${p.title}</b> <button onclick="deleteProduct('${doc.id}')" style="color:red; float:right;">Delete</button></div>`;
+    
+    snap.forEach(d => {
+        const p = d.data();
+        const img = p.images && p.images[0] ? p.images[0] : '';
+        list.innerHTML += `
+            <div class="product-card">
+                <div class="product-img" style="background-image:url('${img}')"></div>
+                <div class="product-info">
+                    <strong>${p.title}</strong>
+                    <span style="color:green; font-weight:bold">${p.price}</span>
+                    <small>Stock: ${p.stock}</small>
+                    <button onclick="deleteProduct('${d.id}')" class="btn btn-outline" style="color:red; margin-top:auto; font-size:0.8rem">Delete</button>
+                </div>
+            </div>`;
     });
 }
 
 window.deleteProduct = async (id) => {
-    const user = auth.currentUser;
-    if(user && confirm("Delete?")) {
-        // DELETE FROM USER FOLDER
-        await deleteDoc(doc(db, "shops", user.uid, "products", id));
-        loadProducts(user.uid);
+    if(confirm("Delete this product?")) {
+        await deleteDoc(doc(db, "shops", auth.currentUser.uid, "products", id));
+        loadProducts(auth.currentUser.uid);
     }
 };
 
-// --- ORDERS (Saved to shops/{uid}/orders) ---
+// --- ORDERS ---
 async function loadOrders(uid) {
     const list = document.getElementById('order-list');
-    if(!list) return;
-
-    // LOAD FROM USER FOLDER
     const q = query(collection(db, "shops", uid, "orders"), orderBy("timestamp", "desc"));
     const snap = await getDocs(q);
     list.innerHTML = '';
     
     snap.forEach(d => {
         const o = d.data();
-        const docId = d.id;
+        const colors = { New: 'blue', Shipped: 'orange', Completed: 'green', Cancelled: 'red' };
         
-        // Status logic
-        let statusColor = '#333';
-        if(o.status === 'New') statusColor = 'blue';
-        if(o.status === 'Shipped') statusColor = 'orange';
-        if(o.status === 'Completed') statusColor = 'green';
-        if(o.status === 'Cancelled') statusColor = 'red';
-
-        let itemsHtml = o.items ? o.items.map(i => `<li>${i.title} x ${i.qty}</li>`).join('') : 'No items';
-
         list.innerHTML += `
-            <div class="order-card">
-                <div style="display:flex; justify-content:space-between;">
-                    <b>${o.customer.name}</b>
-                    <select class="status-select" style="color:${statusColor}" onchange="updateOrderStatus('${docId}', this.value)">
-                        <option value="New" ${o.status === 'New' ? 'selected' : ''}>New</option>
-                        <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                        <option value="Completed" ${o.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                        <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                    </select>
+            <div class="order-item">
+                <div>
+                    <strong>${o.customer.name}</strong> (${o.customer.phone})<br>
+                    <small>${o.total}</small>
                 </div>
-                <small>${o.customer.phone}</small>
-                <ul>${itemsHtml}</ul>
-                <b>Total: ${o.total}</b>
+                <div>
+                   <select onchange="updateStatus('${d.id}', this.value)" style="padding:5px; border-color:${colors[o.status]}">
+                        ${['New','Shipped','Completed','Cancelled'].map(s => `<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+                   </select>
+                </div>
             </div>`;
     });
 }
 
-window.updateOrderStatus = async (orderId, newStatus) => {
-    const user = auth.currentUser;
-    if(user) {
-        // UPDATE USER FOLDER
-        await updateDoc(doc(db, "shops", user.uid, "orders", orderId), { status: newStatus });
-        loadOrders(user.uid);
-    }
+window.updateStatus = async (id, status) => {
+    await updateDoc(doc(db, "shops", auth.currentUser.uid, "orders", id), { status });
+    showToast("Status Updated");
 };
