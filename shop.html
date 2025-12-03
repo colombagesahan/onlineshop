@@ -3,120 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading Shop...</title>
+    <title>Online Shop</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
+<body style="height:auto;">
 
-    <!-- NAVBAR -->
-    <nav>
-        <div class="container">
-            <div class="brand" id="brand-area"></div>
-            <div style="display:flex; align-items:center; gap:20px;">
-                <a href="#products" style="font-weight:600;">Shop</a>
-                <a href="#about" style="font-weight:600;">About</a>
-                <button onclick="openCart()" class="btn btn-primary" style="border-radius:50%; width:50px; height:50px; padding:0;">
-                    <i class="fa-solid fa-cart-shopping"></i> 
-                    <span id="cart-count" style="font-size:0.8rem; position:absolute; margin-top:-20px; margin-left:20px; background:red; padding:2px 6px; border-radius:10px;">0</span>
-                </button>
-            </div>
+    <nav style="background:white; padding:20px; border-bottom:1px solid #eee; position:sticky; top:0;">
+        <div style="max-width:1000px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
+            <h2 id="store-title" style="margin:0; color:var(--primary);">Store</h2>
+            <button class="btn" style="width:auto;" onclick="checkout()">Cart (<span id="cart-count">0</span>)</button>
         </div>
     </nav>
 
-    <!-- HERO SECTION -->
-    <header class="hero" id="hero-section">
-        <img id="hero-bg-img" class="hero-bg" src="">
-        <div class="hero-content">
-            <h1 id="hero-title">Welcome</h1>
-            <p id="hero-sub">Best products for you</p>
-            <a href="#products" class="btn btn-primary">Shop Now</a>
-            <div style="margin-top:40px; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
-                <div class="trust-badge"><i class="fa-solid fa-check-circle"></i> Quality</div>
-                <div class="trust-badge"><i class="fa-solid fa-truck"></i> Fast Delivery</div>
-                <div class="trust-badge"><i class="fa-solid fa-headset"></i> Support</div>
-            </div>
-        </div>
-    </header>
+    <div class="container" style="max-width:1000px; margin:30px auto; padding:0 20px;">
+        <div id="product-list" class="grid">Loading...</div>
+    </div>
 
-    <!-- PRODUCTS SECTION -->
-    <section id="products" class="section-padding">
-        <div class="container">
-            <div class="text-center" style="margin-bottom:50px;">
-                <h2 style="font-size:2.5rem; color:var(--dark);">Our Collection</h2>
-                <div style="width:60px; height:4px; background:var(--primary); margin:10px auto;"></div>
-            </div>
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const params = new URLSearchParams(window.location.search);
+        const storeId = params.get('store');
+        let cart = [];
+
+        if(!storeId) document.body.innerHTML = "<h1>Store Not Found</h1>";
+        else loadStore();
+
+        async function loadStore() {
+            // 1. Get Merchant Info to find Agency Branding
+            // (For simplicity in this demo, we skip fetching Agency color here, but you can add it)
             
-            <!-- Category Filter -->
-            <div style="text-align:center; margin-bottom:30px;">
-                <select id="category-filter" onchange="filterProducts()" style="max-width:200px;">
-                    <option value="all">All Categories</option>
-                </select>
-            </div>
+            // 2. Load Products
+            const snap = await getDocs(collection(db, "shops", storeId, "products"));
+            const list = document.getElementById('product-list');
+            list.innerHTML = "";
+            
+            snap.forEach(d => {
+                const p = d.data();
+                const btn = document.createElement('button');
+                btn.className = "btn";
+                btn.innerText = "Add to Cart";
+                btn.onclick = () => { cart.push(p); document.getElementById('cart-count').innerText = cart.length; };
 
-            <div id="product-list" class="grid">
-                <!-- Products Injected Here -->
-            </div>
-        </div>
-    </section>
-
-    <!-- ABOUT SECTION -->
-    <section id="about" class="section-padding" style="background: white;">
-        <div class="container">
-            <div class="about-grid">
-                <div class="about-img">
-                    <img id="about-img" src="https://via.placeholder.com/500" alt="About">
-                </div>
-                <div class="about-text">
-                    <h4 style="color:var(--primary); font-weight:700;">WHO WE ARE</h4>
-                    <h2 id="about-title" style="font-size:2.5rem; margin-bottom:20px;">About Our Store</h2>
-                    <p id="about-desc" style="color:#666; margin-bottom:30px;">...</p>
-                    <div class="contact-box" style="text-align:left; padding:20px; border-left:5px solid var(--primary);">
-                        <h4 style="margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Visit Us</h4>
-                        <p id="store-address">...</p>
+                list.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-img" style="background-image:url('${p.image || 'https://via.placeholder.com/300'}')"></div>
+                        <div class="product-info">
+                            <h3>${p.title}</h3>
+                            <p style="font-weight:bold; font-size:1.2rem;">${p.price}</p>
+                            <button class="btn" onclick="addToCart('${p.title}', '${p.price}')">Add to Cart</button>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                `;
+            });
+        }
+        
+        window.addToCart = (title, price) => {
+            cart.push({title, price});
+            document.getElementById('cart-count').innerText = cart.length;
+        };
 
-    <!-- FOOTER -->
-    <footer style="background:var(--dark); color:white; padding:50px 0; text-align:center;">
-        <div class="container">
-            <h2 id="footer-brand">Store</h2>
-            <p>Powered by StoreBuilder</p>
-        </div>
-    </footer>
-
-    <!-- CART MODAL -->
-    <div id="cart-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2>Your Cart</h2>
-                <button onclick="closeModal('cart-modal')" style="background:none; border:none; font-size:1.5rem;">&times;</button>
-            </div>
-            <div id="cart-items"></div>
-            <div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
-                <h3>Total: <span id="cart-total">0</span></h3>
-                <input type="text" id="c-name" placeholder="Your Name" style="margin-top:10px;">
-                <input type="tel" id="c-phone" placeholder="WhatsApp Number">
-                <input type="text" id="c-address" placeholder="Delivery Address">
-                <button onclick="checkout()" class="btn btn-primary" style="width:100%; background:#25D366;">
-                    <i class="fa-brands fa-whatsapp"></i> Order on WhatsApp
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- PRODUCT DETAILS MODAL -->
-    <div id="product-modal" class="modal-overlay">
-        <div class="modal-box">
-            <button onclick="closeModal('product-modal')" style="float:right; background:none; border:none;">&times;</button>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-
-    <script>function closeModal(id){ document.getElementById(id).style.display='none'; }</script>
-    <script type="module" src="shop.js"></script>
+        window.checkout = () => {
+            if(cart.length === 0) return alert("Cart is empty");
+            let msg = "Hi, I want to order:%0A";
+            let total = 0;
+            cart.forEach(i => { msg += `- ${i.title} (${i.price})%0A`; total += parseFloat(i.price); });
+            msg += `%0ATotal: ${total}`;
+            
+            // In a real app, you fetch the merchant's phone number from DB
+            const merchantPhone = prompt("Enter Merchant WhatsApp Number (Demo Mode):", "9477.......");
+            if(merchantPhone) window.open(`https://wa.me/${merchantPhone}?text=${msg}`, '_blank');
+        };
+    </script>
 </body>
 </html>
