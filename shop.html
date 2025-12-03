@@ -3,58 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Shop</title>
+    <title>Loading Shop...</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
+    <!-- NAVBAR -->
     <nav>
         <div class="container">
-            <div class="brand" id="brand-area">Loading...</div>
-            <button onclick="openCart()" class="btn btn-primary">
-                <i class="fa-solid fa-cart-shopping"></i> <span id="cart-count">0</span>
-            </button>
+            <div class="brand" id="brand-area"></div>
+            <div style="display:flex; align-items:center; gap:20px;">
+                <a href="#products" style="font-weight:600;">Shop</a>
+                <a href="#about" style="font-weight:600;">About</a>
+                <button onclick="openCart()" class="btn btn-primary" style="border-radius:50%; width:50px; height:50px; padding:0;">
+                    <i class="fa-solid fa-cart-shopping"></i> 
+                    <span id="cart-count" style="font-size:0.8rem; position:absolute; margin-top:-20px; margin-left:20px; background:red; padding:2px 6px; border-radius:10px;">0</span>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <div class="hero">
+    <!-- HERO SECTION -->
+    <header class="hero" id="hero-section">
+        <img id="hero-bg-img" class="hero-bg" src="">
+        <div class="hero-content">
+            <h1 id="hero-title">Welcome</h1>
+            <p id="hero-sub">Best products for you</p>
+            <a href="#products" class="btn btn-primary">Shop Now</a>
+            <div style="margin-top:40px; display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+                <div class="trust-badge"><i class="fa-solid fa-check-circle"></i> Quality</div>
+                <div class="trust-badge"><i class="fa-solid fa-truck"></i> Fast Delivery</div>
+                <div class="trust-badge"><i class="fa-solid fa-headset"></i> Support</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PRODUCTS SECTION -->
+    <section id="products" class="section-padding">
         <div class="container">
-            <h1 id="hero-text">Welcome</h1>
-            <p id="hero-desc">...</p>
-        </div>
-    </div>
-
-    <div class="container">
-        <div style="display:flex; margin-bottom:20px; gap:10px;">
-            <input type="text" id="search-bar" placeholder="Search products..." onkeyup="filterProducts()">
-            <select id="category-filter" onchange="filterProducts()" style="width:auto; min-width:150px;">
-                <option value="all">All</option>
-            </select>
-        </div>
-        <div id="product-list" class="grid">Loading...</div>
-    </div>
-
-    <!-- MODALS -->
-    <div id="product-modal" class="modal-overlay">
-        <div class="modal-box">
-            <button onclick="closeModal('product-modal')" style="float:right; background:none; border:none; font-size:1.5rem;">&times;</button>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-
-    <div id="cart-modal" class="modal-overlay">
-        <div class="modal-box">
-            <button onclick="closeModal('cart-modal')" style="float:right; background:none; border:none; font-size:1.5rem;">&times;</button>
-            <h2>Your Cart</h2>
-            <div id="cart-items" style="max-height:300px; overflow-y:auto; margin:15px 0;"></div>
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem; margin-bottom:20px;">
-                <span>Total:</span> <span id="cart-total">0</span>
+            <div class="text-center" style="margin-bottom:50px;">
+                <h2 style="font-size:2.5rem; color:var(--dark);">Our Collection</h2>
+                <div style="width:60px; height:4px; background:var(--primary); margin:10px auto;"></div>
             </div>
             
-            <input type="text" id="c-name" placeholder="Your Name">
-            <input type="text" id="c-address" placeholder="Address">
-            <input type="tel" id="c-phone" placeholder="Phone">
-            <button onclick="checkout()" class="btn btn-primary" style="width:100%"><i class="fa-brands fa-whatsapp"></i> Order on WhatsApp</button>
+            <!-- Category Filter -->
+            <div style="text-align:center; margin-bottom:30px;">
+                <select id="category-filter" onchange="filterProducts()" style="max-width:200px;">
+                    <option value="all">All Categories</option>
+                </select>
+            </div>
+
+            <div id="product-list" class="grid">
+                <!-- Products Injected Here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="section-padding" style="background: white;">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-img">
+                    <img id="about-img" src="https://via.placeholder.com/500" alt="About">
+                </div>
+                <div class="about-text">
+                    <h4 style="color:var(--primary); font-weight:700;">WHO WE ARE</h4>
+                    <h2 id="about-title" style="font-size:2.5rem; margin-bottom:20px;">About Our Store</h2>
+                    <p id="about-desc" style="color:#666; margin-bottom:30px;">...</p>
+                    <div class="contact-box" style="text-align:left; padding:20px; border-left:5px solid var(--primary);">
+                        <h4 style="margin-bottom:10px;"><i class="fa-solid fa-location-dot"></i> Visit Us</h4>
+                        <p id="store-address">...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer style="background:var(--dark); color:white; padding:50px 0; text-align:center;">
+        <div class="container">
+            <h2 id="footer-brand">Store</h2>
+            <p>Powered by StoreBuilder</p>
+        </div>
+    </footer>
+
+    <!-- CART MODAL -->
+    <div id="cart-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>Your Cart</h2>
+                <button onclick="closeModal('cart-modal')" style="background:none; border:none; font-size:1.5rem;">&times;</button>
+            </div>
+            <div id="cart-items"></div>
+            <div style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
+                <h3>Total: <span id="cart-total">0</span></h3>
+                <input type="text" id="c-name" placeholder="Your Name" style="margin-top:10px;">
+                <input type="tel" id="c-phone" placeholder="WhatsApp Number">
+                <input type="text" id="c-address" placeholder="Delivery Address">
+                <button onclick="checkout()" class="btn btn-primary" style="width:100%; background:#25D366;">
+                    <i class="fa-brands fa-whatsapp"></i> Order on WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PRODUCT DETAILS MODAL -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-box">
+            <button onclick="closeModal('product-modal')" style="float:right; background:none; border:none;">&times;</button>
+            <div id="modal-content"></div>
         </div>
     </div>
 
