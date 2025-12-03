@@ -3,62 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Dashboard</title>
+    <title>Platform</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- LOGIN / REGISTER SCREEN -->
-    <div id="auth-container">
-        <div class="auth-box">
-            <img id="auth-logo" src="https://via.placeholder.com/150x50?text=Platform+Logo">
-            <h2 id="auth-title">Welcome</h2>
-            <p id="auth-subtitle" style="color:#666; margin-bottom:20px;">Sign in to continue</p>
-            
-            <input type="email" id="email" placeholder="Email Address">
-            <input type="password" id="password" placeholder="Password">
-            
-            <div id="role-select-wrapper" style="text-align:left; margin-bottom:15px;">
-                <label style="font-size:0.8rem; font-weight:bold;">I want to be a:</label>
-                <select id="reg-role">
-                    <option value="merchant">Store Owner (Sell Products)</option>
-                    <option value="agency">Agency (Sell Software)</option>
-                </select>
+    <!-- 1. PUBLIC LANDING PAGE (Dynamic based on Agency) -->
+    <div id="public-landing">
+        <nav class="landing-nav">
+            <div id="lp-logo" style="font-weight:bold; font-size:1.5rem; color:var(--primary);">Platform</div>
+            <button onclick="showLoginModal()" class="btn">Login / Join</button>
+        </nav>
+        <div class="landing-hero">
+            <h1 id="lp-title">Build Your Business</h1>
+            <p id="lp-desc">The all-in-one platform for merchants and suppliers.</p>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <button onclick="setRegRole('merchant')" class="btn">Start a Shop (Merchant)</button>
+                <button onclick="setRegRole('supplier')" class="btn btn-outline">Become a Supplier</button>
             </div>
-
-            <button onclick="handleAuth()" class="btn">Login / Register</button>
+        </div>
+        <div class="card" style="max-width:800px; margin:0 auto; text-align:center;">
+            <h3>Powered by <span id="lp-agency-name">Super Platform</span></h3>
+            <p>Join thousands of entrepreneurs making money online.</p>
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
-    <div id="dashboard-container" class="hidden">
-        <aside>
-            <div class="brand">
-                <img id="dash-logo" src="">
-                <span id="dash-brand-name">Dashboard</span>
+    <!-- 2. AUTH MODAL -->
+    <div id="auth-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:100;">
+        <div class="card" style="width:100%; max-width:400px; position:relative;">
+            <button onclick="document.getElementById('auth-modal').classList.add('hidden')" style="position:absolute; right:15px; top:15px; background:none; border:none; font-size:1.5rem;">&times;</button>
+            <h2 id="auth-title">Login</h2>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="pass" placeholder="Password">
+            
+            <!-- Hidden inputs for registration -->
+            <div id="reg-fields" class="hidden">
+                <input type="text" id="reg-name" placeholder="Business/Name">
+                <select id="reg-role-select">
+                    <option value="merchant">Merchant (Seller)</option>
+                    <option value="supplier">Supplier (Product Source)</option>
+                    <option value="agency">Agency (Software Reseller)</option>
+                </select>
             </div>
-            <nav id="sidebar-menu">
-                <!-- Menu items injected by JS -->
-            </nav>
-            <button onclick="logout()" class="btn btn-outline" style="margin-top:auto;">Logout</button>
-        </aside>
 
-        <main id="main-content">
-            <!-- Content injected by JS -->
+            <button onclick="handleAuth()" class="btn" style="width:100%;">Continue</button>
+            <p style="text-align:center; margin-top:10px; cursor:pointer; color:blue;" onclick="toggleAuthMode()">Switch to Register/Login</p>
+        </div>
+    </div>
+
+    <!-- 3. DASHBOARD (All Roles) -->
+    <div id="dashboard" class="dashboard-container hidden">
+        <aside class="sidebar">
+            <h3 id="dash-brand" style="margin-bottom:30px;">Dashboard</h3>
+            <nav id="sidebar-menu">
+                <!-- Menu items injected via JS -->
+            </nav>
+            <button onclick="logout()" class="btn btn-outline" style="margin-top:auto; border-color:#475569; color:white;">Logout</button>
+        </aside>
+        <main class="main-content" id="main-view">
+            <!-- Content injected via JS -->
         </main>
     </div>
 
-    <!-- Notification Toast -->
-    <div id="toast" style="position:fixed; bottom:20px; right:20px; background:#333; color:white; padding:12px 20px; border-radius:8px; display:none; z-index:999;"></div>
+    <div id="toast" style="position:fixed; bottom:20px; right:20px; background:#333; color:white; padding:10px 20px; border-radius:5px; display:none;"></div>
 
     <script type="module" src="app.js"></script>
-    <!-- Simple Toast Logic -->
     <script>
-        window.showToast = (msg) => {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
+        function showLoginModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+        let isRegister = false;
+        function toggleAuthMode() {
+            isRegister = !isRegister;
+            document.getElementById('reg-fields').classList.toggle('hidden', !isRegister);
+            document.getElementById('auth-title').innerText = isRegister ? 'Create Account' : 'Login';
+        }
+        function setRegRole(role) {
+            showLoginModal();
+            isRegister = true;
+            document.getElementById('reg-fields').classList.remove('hidden');
+            document.getElementById('reg-role-select').value = role;
         }
     </script>
 </body>
