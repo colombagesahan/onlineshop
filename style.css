@@ -10,7 +10,7 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; outline: none; }
 body { background: var(--bg); color: var(--text); }
-.hidden { display: none !important; }
+.hidden { display: none; }
 
 /* Landing Page Styles (For Agencies) */
 .landing-hero {
