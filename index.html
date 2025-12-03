@@ -3,45 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Launch Your Store | E-Com Platform</title>
+    <title>SaaS Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <nav>
-        <div class="container">
-            <div class="brand"><i class="fa-solid fa-layer-group"></i> StoreBuilder</div>
-            <a href="admin.html" class="btn btn-primary">Login</a>
-        </div>
-    </nav>
 
-    <div class="hero">
-        <div class="container">
-            <h1>Sell Online, Simply.</h1>
-            <p>Create your professional online store in seconds. Manage products, orders, and customers from one dashboard.</p>
-            <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
-                <a href="admin.html" class="btn btn-primary" style="padding: 15px 30px; font-size: 1.1rem;">Start for Free</a>
-                <a href="#features" class="btn btn-outline" style="padding: 15px 30px; font-size: 1.1rem;">Learn More</a>
+    <!-- LOGIN / REGISTER SCREEN -->
+    <div id="auth-container">
+        <div class="auth-box">
+            <img id="auth-logo" src="https://via.placeholder.com/150x50?text=Platform+Logo">
+            <h2 id="auth-title">Welcome</h2>
+            <p id="auth-subtitle" style="color:#666; margin-bottom:20px;">Sign in to continue</p>
+            
+            <input type="email" id="email" placeholder="Email Address">
+            <input type="password" id="password" placeholder="Password">
+            
+            <div id="role-select-wrapper" style="text-align:left; margin-bottom:15px;">
+                <label style="font-size:0.8rem; font-weight:bold;">I want to be a:</label>
+                <select id="reg-role">
+                    <option value="merchant">Store Owner (Sell Products)</option>
+                    <option value="agency">Agency (Sell Software)</option>
+                </select>
             </div>
+
+            <button onclick="handleAuth()" class="btn">Login / Register</button>
         </div>
     </div>
 
-    <div class="container grid" id="features" style="padding: 50px 20px;">
-        <div class="card">
-            <i class="fa-solid fa-bolt" style="font-size: 2rem; color: var(--primary); margin-bottom: 15px;"></i>
-            <h3>Fast Setup</h3>
-            <p style="color:var(--text-light)">Launch your shop instantly. No coding required.</p>
-        </div>
-        <div class="card">
-            <i class="fa-brands fa-whatsapp" style="font-size: 2rem; color: #22c55e; margin-bottom: 15px;"></i>
-            <h3>WhatsApp Checkout</h3>
-            <p style="color:var(--text-light)">Receive orders directly to your WhatsApp number.</p>
-        </div>
-        <div class="card">
-            <i class="fa-solid fa-chart-line" style="font-size: 2rem; color: #7c3aed; margin-bottom: 15px;"></i>
-            <h3>Manage Orders</h3>
-            <p style="color:var(--text-light)">Track stock and order status in real-time.</p>
-        </div>
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard-container" class="hidden">
+        <aside>
+            <div class="brand">
+                <img id="dash-logo" src="">
+                <span id="dash-brand-name">Dashboard</span>
+            </div>
+            <nav id="sidebar-menu">
+                <!-- Menu items injected by JS -->
+            </nav>
+            <button onclick="logout()" class="btn btn-outline" style="margin-top:auto;">Logout</button>
+        </aside>
+
+        <main id="main-content">
+            <!-- Content injected by JS -->
+        </main>
     </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" style="position:fixed; bottom:20px; right:20px; background:#333; color:white; padding:12px 20px; border-radius:8px; display:none; z-index:999;"></div>
+
+    <script type="module" src="app.js"></script>
+    <!-- Simple Toast Logic -->
+    <script>
+        window.showToast = (msg) => {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+    </script>
 </body>
 </html>
