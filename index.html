@@ -70,19 +70,61 @@
 
     <script type="module" src="app.js"></script>
     <script>
-        function showLoginModal() { document.getElementById('auth-modal').style.display = 'flex'; }
+        // Helper to show/hide elements safely
+        function toggleModal(show) {
+            const modal = document.getElementById('auth-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex'; // Ensure flex is applied for centering
+            } else {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+            }
+        }
+
+        // Open Login Modal
+        function showLoginModal() { 
+            toggleModal(true);
+        }
+
+        // Close Login Modal (Attached to the X button)
+        document.querySelector('#auth-modal button').onclick = function() {
+            toggleModal(false);
+        };
+
+        // Switch between Merchant/Supplier Registration
         let isRegister = false;
+        
         function toggleAuthMode() {
             isRegister = !isRegister;
-            document.getElementById('reg-fields').classList.toggle('hidden', !isRegister);
+            const regFields = document.getElementById('reg-fields');
+            
+            if (isRegister) {
+                regFields.classList.remove('hidden');
+            } else {
+                regFields.classList.add('hidden');
+            }
+            
             document.getElementById('auth-title').innerText = isRegister ? 'Create Account' : 'Login';
         }
+
         function setRegRole(role) {
-            showLoginModal();
+            toggleModal(true); // Open modal
+            
+            // Switch to Register Mode
             isRegister = true;
             document.getElementById('reg-fields').classList.remove('hidden');
-            document.getElementById('reg-role-select').value = role;
+            document.getElementById('auth-title').innerText = 'Create Account';
+            
+            // Set the dropdown value
+            const select = document.getElementById('reg-role-select');
+            if(select) select.value = role;
         }
+
+        // Make functions available globally so HTML buttons can see them
+        window.showLoginModal = showLoginModal;
+        window.toggleAuthMode = toggleAuthMode;
+        window.setRegRole = setRegRole;
     </script>
 </body>
 </html>
