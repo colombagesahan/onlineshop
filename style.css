@@ -1,60 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
 :root {
-    --primary: #2563eb; /* Agencies will override this */
-    --bg: #f1f5f9;
+    --primary: #2563eb; /* Dynamic */
+    --bg: #f8fafc;
     --surface: #ffffff;
-    --text: #0f172a;
+    --text: #1e293b;
     --border: #e2e8f0;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; outline: none; }
-body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+body { background: var(--bg); color: var(--text); }
 .hidden { display: none !important; }
 
-/* Authentication Screen */
-#auth-container {
-    flex: 1; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, var(--bg) 0%, #dbeafe 100%);
+/* Landing Page Styles (For Agencies) */
+.landing-hero {
+    background: white; padding: 80px 20px; text-align: center;
+    border-bottom: 1px solid var(--border);
 }
-.auth-box {
-    background: var(--surface); padding: 40px; width: 100%; max-width: 400px;
-    border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center;
-}
-.auth-box img { height: 50px; margin-bottom: 20px; object-fit: contain; }
+.landing-hero h1 { font-size: 3rem; color: var(--primary); margin-bottom: 15px; }
+.landing-hero p { font-size: 1.2rem; color: #64748b; max-width: 600px; margin: 0 auto 30px; }
+.landing-nav { display: flex; justify-content: space-between; padding: 20px; background: white; align-items: center; border-bottom: 1px solid #eee; }
 
 /* Dashboard Layout */
-#dashboard-container { display: flex; height: 100vh; overflow: hidden; }
-aside {
-    width: 260px; background: var(--surface); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; padding: 20px; z-index: 10;
+.dashboard-container { display: flex; min-height: 100vh; }
+.sidebar {
+    width: 260px; background: #1e293b; color: white; display: flex; flex-direction: column; padding: 20px;
+    position: fixed; height: 100%; overflow-y: auto;
 }
-aside .brand { font-size: 1.2rem; font-weight: 800; color: var(--primary); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
-aside .brand img { height: 35px; }
-.nav-item {
-    padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer;
-    color: #64748b; font-weight: 500; transition: 0.2s;
-}
-.nav-item:hover, .nav-item.active { background: var(--bg); color: var(--primary); }
-main { flex: 1; padding: 30px; overflow-y: auto; }
+.main-content { margin-left: 260px; padding: 30px; width: 100%; }
 
-/* UI Elements */
-.card { background: var(--surface); padding: 25px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-h2 { margin-bottom: 20px; }
-input, select, textarea {
-    width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
-    margin-bottom: 15px; background: #fff; transition: 0.2s;
-}
-input:focus { border-color: var(--primary); }
+/* UI Components */
+.card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
 .btn {
-    width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600;
-    cursor: pointer; background: var(--primary); color: white; transition: 0.2s;
+    padding: 12px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+    background: var(--primary); color: white; transition: 0.2s; display: inline-block;
 }
-.btn:hover { opacity: 0.9; transform: translateY(-1px); }
-.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.btn:hover { opacity: 0.9; transform: translateY(-2px); }
+.btn-outline { background: transparent; border: 1px solid #cbd5e1; color: var(--text); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
-/* Shop Preview */
-.product-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: white; }
-.product-img { height: 180px; background-color: #eee; background-size: cover; background-position: center; }
-.product-info { padding: 15px; }
+input, select, textarea {
+    width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px;
+}
+
+/* Steps / Guide Box */
+.guide-box { background: #f0f9ff; border-left: 5px solid #0ea5e9; padding: 15px; margin-bottom: 20px; }
+.guide-step { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+.step-num { background: #0ea5e9; color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
