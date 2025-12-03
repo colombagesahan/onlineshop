@@ -3,20 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Shop</title>
+    <title>Online Store</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .shop-nav { background: white; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; display:flex; justify-content:space-between; align-items:center; }
+        .cart-float { position: fixed; bottom: 20px; right: 20px; background: #25D366; color: white; padding: 15px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; }
+    </style>
 </head>
-<body style="height:auto;">
+<body>
 
-    <nav style="background:white; padding:20px; border-bottom:1px solid #eee; position:sticky; top:0;">
-        <div style="max-width:1000px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="store-title" style="margin:0; color:var(--primary);">Store</h2>
-            <button class="btn" style="width:auto;" onclick="checkout()">Cart (<span id="cart-count">0</span>)</button>
-        </div>
+    <nav class="shop-nav">
+        <h2 id="store-title">Loading Store...</h2>
+        <span style="font-size:0.9rem; color:#666;">Verified Seller</span>
     </nav>
 
-    <div class="container" style="max-width:1000px; margin:30px auto; padding:0 20px;">
-        <div id="product-list" class="grid">Loading...</div>
+    <div class="main-content" style="margin-left:0; max-width:1000px; margin:0 auto;">
+        <div id="product-grid" class="grid"></div>
+    </div>
+
+    <div class="cart-float" onclick="checkout()">
+        Cart (<span id="cart-count">0</span>)
     </div>
 
     <script type="module">
@@ -26,39 +32,37 @@
         const params = new URLSearchParams(window.location.search);
         const storeId = params.get('store');
         let cart = [];
+        let phone = "";
 
-        if(!storeId) document.body.innerHTML = "<h1>Store Not Found</h1>";
-        else loadStore();
-
-        async function loadStore() {
-            // 1. Get Merchant Info to find Agency Branding
-            // (For simplicity in this demo, we skip fetching Agency color here, but you can add it)
+        async function initShop() {
+            if(!storeId) return document.body.innerHTML = "<h1>Store Not Found</h1>";
             
-            // 2. Load Products
+            // 1. Get Store Settings
+            const shopSnap = await getDoc(doc(db, "shops", storeId));
+            if(shopSnap.exists()) {
+                const s = shopSnap.data();
+                document.getElementById('store-title').innerText = s.storeName || "Online Store";
+                document.title = s.storeName;
+                phone = s.phone;
+            }
+
+            // 2. Get Products
             const snap = await getDocs(collection(db, "shops", storeId, "products"));
-            const list = document.getElementById('product-list');
-            list.innerHTML = "";
+            const grid = document.getElementById('product-grid');
             
             snap.forEach(d => {
                 const p = d.data();
-                const btn = document.createElement('button');
-                btn.className = "btn";
-                btn.innerText = "Add to Cart";
-                btn.onclick = () => { cart.push(p); document.getElementById('cart-count').innerText = cart.length; };
-
-                list.innerHTML += `
-                    <div class="product-card">
-                        <div class="product-img" style="background-image:url('${p.image || 'https://via.placeholder.com/300'}')"></div>
-                        <div class="product-info">
-                            <h3>${p.title}</h3>
-                            <p style="font-weight:bold; font-size:1.2rem;">${p.price}</p>
-                            <button class="btn" onclick="addToCart('${p.title}', '${p.price}')">Add to Cart</button>
-                        </div>
+                grid.innerHTML += `
+                    <div class="card" style="margin:0;">
+                        <img src="${p.image}" style="width:100%; height:200px; object-fit:cover; border-radius:8px; margin-bottom:15px;">
+                        <h3>${p.title}</h3>
+                        <p style="font-size:1.2rem; font-weight:bold; color:#2563eb;">${p.price}</p>
+                        <button onclick="addToCart('${p.title}', ${p.price})" class="btn" style="width:100%;">Add to Cart</button>
                     </div>
                 `;
             });
         }
-        
+
         window.addToCart = (title, price) => {
             cart.push({title, price});
             document.getElementById('cart-count').innerText = cart.length;
@@ -66,15 +70,22 @@
 
         window.checkout = () => {
             if(cart.length === 0) return alert("Cart is empty");
-            let msg = "Hi, I want to order:%0A";
+            if(!phone) return alert("Merchant has not set a WhatsApp number yet.");
+
+            let msg = `*New Order* %0A`;
             let total = 0;
-            cart.forEach(i => { msg += `- ${i.title} (${i.price})%0A`; total += parseFloat(i.price); });
-            msg += `%0ATotal: ${total}`;
+            cart.forEach(i => {
+                msg += `- ${i.title} (${i.price}) %0A`;
+                total += parseFloat(i.price);
+            });
+            msg += `%0A*Total: ${total}*`;
             
-            // In a real app, you fetch the merchant's phone number from DB
-            const merchantPhone = prompt("Enter Merchant WhatsApp Number (Demo Mode):", "9477.......");
-            if(merchantPhone) window.open(`https://wa.me/${merchantPhone}?text=${msg}`, '_blank');
+            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
         };
+
+        initShop();
+        window.addToCart = window.addToCart; // Expose to scope
+        window.checkout = window.checkout;
     </script>
 </body>
 </html>
